@@ -30,7 +30,7 @@ def main() :
     res.width = 720
     res.height = 404
     point_cloud = sl.Mat(res.width,res.height,sl.MAT_TYPE.F32_C4,sl.MEM.CPU)
-    image_zed = sl.Mat(res.width, res.height, sl.MAT_TYPE.U8_C4)
+    #image_zed = sl.Mat(res.width, res.height, sl.MAT_TYPE.U8_C4)
     
     camera_model = zed.get_camera_information().camera_model
     # Create OpenGL viewer
