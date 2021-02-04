@@ -229,6 +229,8 @@ class GLViewer:
         glutInit(_argc, _argv)
         wnd_w = int(glutGet(GLUT_SCREEN_WIDTH)*0.9)
         wnd_h = int(glutGet(GLUT_SCREEN_HEIGHT) *0.9)
+        wnd_w = res.width
+        wnd_h = res.height
         glutInitWindowSize(wnd_w, wnd_h)
         glutInitWindowPosition(int(wnd_w*0.05), int(wnd_h*0.05))
 
@@ -350,7 +352,15 @@ class GLViewer:
             self.mouse_button[0] = (Up == 0)
             print(x,y)
             point3D = self.point_cloud_for_saving.get_value(x,y)
-            print(point3D[1][0],point3D[1][1],point3D[1][2],point3D[1][3])
+            if point3D[0] == "SUCCESS":
+                print(point3D[1])
+                try:
+                    centerX = float(point3D[1][0])
+                    centerY = float(point3D[1][1])
+                    centerZ = float(point3D[1][2])
+                    filterPointCloud(centerX,centerY,centerZ)
+                except:
+                    pass
         elif key==2 :
             self.mouse_button[1] = (Up == 0)  
         elif(key == 3):
