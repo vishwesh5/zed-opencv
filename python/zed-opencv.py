@@ -22,15 +22,11 @@ def main() :
         print(repr(err))
         zed.close()
         exit(1)
-
-    # Display help in console
-    print_help()
     
     res = sl.Resolution()
     res.width = 720
     res.height = 404
     point_cloud = sl.Mat(res.width,res.height,sl.MAT_TYPE.F32_C4,sl.MEM.CPU)
-    #image_zed = sl.Mat(res.width, res.height, sl.MAT_TYPE.U8_C4)
     
     camera_model = zed.get_camera_information().camera_model
     # Create OpenGL viewer
@@ -43,27 +39,6 @@ def main() :
             viewer.updateData(point_cloud)
     viewer.exit()
     zed.close()
-#     key = ' '
-#     while key != 113 :
-#         err = zed.grab()
-#         if err == sl.ERROR_CODE.SUCCESS :
-#             zed.retrieve_image(image_zed, sl.VIEW.LEFT, sl.MEM.CPU, res)
-#             zed.retrieve_measure(point_cloud, sl.MEASURE.XYZRGBA, sl.MEM.CPU, res)
-
-#             # To recover data from sl.Mat to use it with opencv, use the get_data() method
-#             # It returns a numpy array that can be used as a matrix with opencv
-#             image_ocv = image_zed.get_data()
-
-#             cv2.imshow("Image", image_ocv)
-
-#             key = cv2.waitKey(10)
-
-#             process_key_event(zed, key)
-
-#     cv2.destroyAllWindows()
-#     zed.close()
-
-#     print("\nFINISH")
 
 if __name__ == "__main__":
     main()
