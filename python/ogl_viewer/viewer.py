@@ -350,7 +350,7 @@ class GLViewer:
             self.mouse_button[0] = (Up == 0)
             print(x,y)
             point3D = self.point_cloud_for_saving.get_value(x,y)
-            print(point3D[0],point3D[1],point3D[2],point3D[3])
+            print(point3D[1][0],point3D[1][1],point3D[1][2],point3D[1][3])
         elif key==2 :
             self.mouse_button[1] = (Up == 0)  
         elif(key == 3):
