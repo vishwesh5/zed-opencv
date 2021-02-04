@@ -1,116 +1,8 @@
 import sys
 import numpy as np
 import pyzed.sl as sl
-import cv2
-
-help_string = "[s] Save side by side image [d] Save Depth, [n] Change Depth format, [p] Save Point Cloud, [m] Change Point Cloud format, [q] Quit\nOnly [p] is working for now..."
-prefix_point_cloud = "Cloud_"
-prefix_depth = "Depth_"
-path = "./"
-
-count_save = 0
-mode_point_cloud = 0
-mode_depth = 0
-point_cloud_format_ext = ".ply"
-depth_format_ext = ".png"
-
-def point_cloud_format_name(): 
-    global mode_point_cloud
-    if mode_point_cloud > 3:
-        mode_point_cloud = 0
-    switcher = {
-        0: ".xyz",
-        1: ".pcd",
-        2: ".ply",
-        3: ".vtk",
-    }
-    return switcher.get(mode_point_cloud, "nothing") 
-  
-def depth_format_name(): 
-    global mode_depth
-    if mode_depth > 2:
-        mode_depth = 0
-    switcher = {
-        0: ".png",
-        1: ".pfm",
-        2: ".pgm",
-    }
-    return switcher.get(mode_depth, "nothing") 
-
-def save_point_cloud(zed, filename) :
-    print("Saving Point Cloud...")
-    res = sl.Resolution()
-    res.width = 720
-    res.height = 404
-    point_cloud = sl.Mat(res.width,res.height,sl.MAT_TYPE.F32_C4,sl.MEM.CPU)
-    zed.retrieve_measure(point_cloud, sl.MEASURE.XYZRGBA,sl.MEM.CPU,res)
-    saved = (point_cloud.write(filename + depth_format_ext) == sl.ERROR_CODE.SUCCESS)
-    if saved :
-        print("Done")
-    else :
-        print("Failed... Please check that you have permissions to write on disk")
-
-def save_depth(zed, filename) :
-    print("Saving Depth Map...")
-    tmp = sl.Mat()
-    zed.retrieve_measure(tmp, sl.MEASURE.XYZRGBA)
-    saved = (tmp.write(filename + point_cloud_format_ext) == sl.ERROR_CODE.SUCCESS)
-    if saved :
-        print("Done")
-    else :
-        print("Failed... Please check that you have permissions to write on disk")
-
-def save_sbs_image(zed, filename) :
-
-    image_sl_left = sl.Mat()
-    zed.retrieve_image(image_sl_left, sl.VIEW.LEFT)
-    image_cv_left = image_sl_left.get_data()
-
-    image_sl_right = sl.Mat()
-    zed.retrieve_image(image_sl_right, sl.VIEW.RIGHT)
-    image_cv_right = image_sl_right.get_data()
-
-    sbs_image = np.concatenate((image_cv_left, image_cv_right), axis=1)
-
-    cv2.imwrite(filename, sbs_image)
-    
-
-def process_key_event(zed, key) :
-    global mode_depth
-    global mode_point_cloud
-    global count_save
-    global depth_format_ext
-    global point_cloud_format_ext
-
-    if key == 100 or key == 68:
-        save_depth(zed, path + prefix_depth + str(count_save))
-        count_save += 1
-    elif key == 110 or key == 78:
-        mode_depth += 1
-        depth_format_ext = depth_format_name()
-        print("Depth format: ", depth_format_ext)
-    elif key == 112 or key == 80:
-        save_point_cloud(zed, path + prefix_point_cloud + str(count_save))
-        count_save += 1
-    elif key == 109 or key == 77:
-        mode_point_cloud += 1
-        point_cloud_format_ext = point_cloud_format_name()
-        print("Point Cloud format: ", point_cloud_format_ext)
-    elif key == 104 or key == 72:
-        print(help_string)
-    elif key == 115:
-        save_sbs_image(zed, "ZED_image" + str(count_save) + ".png")
-        count_save += 1
-    else:
-        a = 0
-
-def print_help() :
-    print(" Press 's' to save Side by side images")
-    print(" Press 'p' to save Point Cloud")
-    print(" Press 'd' to save Depth image")
-    print(" Press 'm' to switch Point Cloud format")
-    print(" Press 'n' to switch Depth format")
-
+import ogl_viewer.viewer as gl
+#import cv2
 
 def main() :
 
@@ -140,27 +32,38 @@ def main() :
     point_cloud = sl.Mat(res.width,res.height,sl.MAT_TYPE.F32_C4,sl.MEM.CPU)
     image_zed = sl.Mat(res.width, res.height, sl.MAT_TYPE.U8_C4)
     
-    key = ' '
-    while key != 113 :
-        err = zed.grab()
-        if err == sl.ERROR_CODE.SUCCESS :
-            zed.retrieve_image(image_zed, sl.VIEW.LEFT, sl.MEM.CPU, res)
-            zed.retrieve_measure(point_cloud, sl.MEASURE.XYZRGBA, sl.MEM.CPU, res)
-
-            # To recover data from sl.Mat to use it with opencv, use the get_data() method
-            # It returns a numpy array that can be used as a matrix with opencv
-            image_ocv = image_zed.get_data()
-
-            cv2.imshow("Image", image_ocv)
-
-            key = cv2.waitKey(10)
-
-            process_key_event(zed, key)
-
-    cv2.destroyAllWindows()
+    camera_model = zed.get_camera_information().camera_model
+    # Create OpenGL viewer
+    viewer = gl.GLViewer()
+    viewer.init(len(sys.argv), sys.argv, camera_model, res)
+    
+    while viewer.is_available():
+        if zed.grab() == sl.ERROR_CODE.SUCCESS:
+            zed.retrieve_measure(point_cloud, sl.MEASURE.XYZRGBA,sl.MEM.CPU, res)
+            viewer.updateData(point_cloud)
+    viewer.exit()
     zed.close()
+#     key = ' '
+#     while key != 113 :
+#         err = zed.grab()
+#         if err == sl.ERROR_CODE.SUCCESS :
+#             zed.retrieve_image(image_zed, sl.VIEW.LEFT, sl.MEM.CPU, res)
+#             zed.retrieve_measure(point_cloud, sl.MEASURE.XYZRGBA, sl.MEM.CPU, res)
 
-    print("\nFINISH")
+#             # To recover data from sl.Mat to use it with opencv, use the get_data() method
+#             # It returns a numpy array that can be used as a matrix with opencv
+#             image_ocv = image_zed.get_data()
+
+#             cv2.imshow("Image", image_ocv)
+
+#             key = cv2.waitKey(10)
+
+#             process_key_event(zed, key)
+
+#     cv2.destroyAllWindows()
+#     zed.close()
+
+#     print("\nFINISH")
 
 if __name__ == "__main__":
     main()
