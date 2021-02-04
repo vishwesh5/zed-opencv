@@ -158,7 +158,7 @@ def main() :
 
     key = ' '
     while key != 113 :
-        err = zed.grab(runtime)
+        err = zed.grab()
         if err == sl.ERROR_CODE.SUCCESS :
             # Retrieve the left image, depth image in the half-resolution
             #zed.retrieve_image(image_zed, sl.VIEW.LEFT, sl.MEM.CPU, image_size)
