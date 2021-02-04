@@ -44,7 +44,7 @@ def save_point_cloud(zed, filename) :
     res.height = 404
     point_cloud = sl.Mat(res.width,res.height,sl.MAT_TYPE.F32_C4,sl.MEM.CPU)
     zed.retrieve_measure(point_cloud, sl.MEASURE.XYZRGBA,sl.MEM.CPU,res)
-    saved = (tmp.write(filename + depth_format_ext) == sl.ERROR_CODE.SUCCESS)
+    saved = (point_cloud.write(filename + depth_format_ext) == sl.ERROR_CODE.SUCCESS)
     if saved :
         print("Done")
     else :
