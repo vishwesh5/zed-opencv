@@ -222,6 +222,7 @@ class GLViewer:
         self.previousMouseMotion = [0., 0.]
         self.mouseMotion = [0., 0.]
         self.zedModel = Simple3DObject(True)
+        self.point_cloud_for_saving = None
         self.point_cloud = Simple3DObject(False, 4)
 
     def init(self, _argc, _argv, camera_model, res): # _params = sl.CameraParameters
@@ -322,6 +323,7 @@ class GLViewer:
         self.mutex.acquire()
         self.point_cloud.setPoints(pc)
         self.mutex.release()
+        self.point_cloud_for_saving = pc
 
     def idle(self):
         if self.available:
@@ -338,6 +340,9 @@ class GLViewer:
     def keyPressedCallback(self, key, x, y):
         if ord(key) == 27:
             self.close_func()
+        elif ord(key) == ord('p'):
+            pc = self.point_cloud_for_saving
+            pc.write('pointcloud.ply')
 
     def on_mouse(self,*args,**kwargs):
         (key,Up,x,y) = args
